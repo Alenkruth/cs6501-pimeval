@@ -3,7 +3,15 @@
 # This file is licensed under the MIT License.
 # See the LICENSE file in the root of this repository for more details.
 
-PROJ_ROOT = ../../..
+# Find PROJ_ROOT: works both when this dir lives inside PIMbench (or is
+# symlinked there) and when built from the repo root directly.
+ifneq ($(wildcard ../../../Makefile.common),)
+  PROJ_ROOT = ../../..
+else ifneq ($(wildcard ../../PIMeval-PIMbench/Makefile.common),)
+  PROJ_ROOT = ../../PIMeval-PIMbench
+else
+  $(error Cannot find Makefile.common — run setup.sh or set PROJ_ROOT manually)
+endif
 include ${PROJ_ROOT}/Makefile.common
 
 # make USE_OPENMP=1
