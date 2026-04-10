@@ -27,9 +27,9 @@ parse_pim_output() {
     local output="$1"
 
     local dc_runtime dc_energy
-    dc_runtime=$(echo "$output" | grep -A1 "Data Copy Stats:" | grep "TOTAL" \
+    dc_runtime=$(echo "$output" | grep -A5 "Data Copy Stats:" | grep "TOTAL" \
         | sed 's/.*TOTAL ---------.*bytes[[:space:]]*//' | awk '{print $1}')
-    dc_energy=$(echo "$output" | grep -A1 "Data Copy Stats:" | grep "TOTAL" \
+    dc_energy=$(echo "$output" | grep -A5 "Data Copy Stats:" | grep "TOTAL" \
         | sed 's/.*Estimated Runtime[[:space:]]*//' | awk '{print $1}')
 
     local pim_runtime pim_energy
@@ -136,7 +136,7 @@ for bench in "${BENCHMARKS[@]}"; do
 \\label{tab:${bench}-time}
 \\begin{tabular}{lSSSS}
 \\toprule
-{Configuration} & {$n=128$} & {$n=4096$} & {$n=8192$} & {$n=16384$} \\\\
+{Configuration} & {\$n=128\$} & {\$n=4096\$} & {\$n=8192\$} & {\$n=16384\$} \\\\
 \\midrule
 TEXHEADER
 
@@ -174,7 +174,7 @@ TEXFOOTER
 \\label{tab:${bench}-energy}
 \\begin{tabular}{lSSSS}
 \\toprule
-{Configuration} & {$n=128$} & {$n=4096$} & {$n=8192$} & {$n=16384$} \\\\
+{Configuration} & {\$n=128\$} & {\$n=4096\$} & {\$n=8192\$} & {\$n=16384\$} \\\\
 \\midrule
 TEXHEADER
 

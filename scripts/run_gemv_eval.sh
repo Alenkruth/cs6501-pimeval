@@ -45,9 +45,9 @@ parse_pim_output() {
     # Data Copy TOTAL line format:
     #   TOTAL --------- : <bytes> bytes   <runtime> ms Estimated Runtime   <energy> mj Estimated Energy
     local dc_runtime dc_energy
-    dc_runtime=$(echo "$output" | grep -A1 "Data Copy Stats:" | grep "TOTAL" \
+    dc_runtime=$(echo "$output" | grep -A5 "Data Copy Stats:" | grep "TOTAL" \
         | sed 's/.*TOTAL ---------.*bytes[[:space:]]*//' | awk '{print $1}')
-    dc_energy=$(echo "$output" | grep -A1 "Data Copy Stats:" | grep "TOTAL" \
+    dc_energy=$(echo "$output" | grep -A5 "Data Copy Stats:" | grep "TOTAL" \
         | sed 's/.*Estimated Runtime[[:space:]]*//' | awk '{print $1}')
 
     # PIM Command TOTAL line format:
