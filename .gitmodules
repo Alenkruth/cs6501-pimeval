@@ -1,0 +1,3 @@
+[submodule "PIMeval-PIMbench"]
+	path = PIMeval-PIMbench
+	url = git@github.com:UVA-LavaLab/PIMeval-PIMbench.git
