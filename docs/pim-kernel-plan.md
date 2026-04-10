@@ -322,7 +322,19 @@ implementation in `main()`. Both must produce identical integer results.
 
 ---
 
-## 8. Files
+## 8. Visualizations
+
+### RMSNorm Step-by-Step
+
+![RMSNorm visualization](rmsnorm_visualization.png)
+
+### LayerNorm Step-by-Step
+
+![LayerNorm visualization](layernorm_visualization.png)
+
+---
+
+## 9. Files
 
 - `rmsnorm/PIM/rmsnorm.cpp` — RMSNorm PIM kernel (4 PIM operations)
 - `lnorm/PIM/lnorm.cpp` — LayerNorm PIM kernel (6 PIM operations + alloc/copy/free)

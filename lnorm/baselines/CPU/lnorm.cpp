@@ -12,7 +12,7 @@
 #include <cblas.h>
 #include <cmath>
 
-#include "../../../../util/utilBaselines.h"
+#include "../../../PIMeval-PIMbench/util/utilBaselines.h"
 
 using namespace std;
 

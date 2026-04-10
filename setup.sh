@@ -58,7 +58,7 @@ for workload in "${WORKLOADS[@]}"; do
     echo "==> Symlinked: ${dest} -> ../../${workload}"
 done
 
-# ---------- Step 4: Verify ----------
+# ---------- Step 4: Verify symlinks ----------
 echo ""
 echo "==> Verification:"
 for workload in "${WORKLOADS[@]}"; do
@@ -71,11 +71,20 @@ for workload in "${WORKLOADS[@]}"; do
     fi
 done
 
+# ---------- Step 5: Build PIM kernels and CPU baselines ----------
 echo ""
-echo "Setup complete. You can now build lnorm/rmsnorm from PIMbench:"
-echo "  cd ${PIMBENCH_DIR}/lnorm/PIM && make perf USE_OPENMP=1"
-echo "  cd ${PIMBENCH_DIR}/rmsnorm/PIM && make perf USE_OPENMP=1"
+echo "==> Building PIM kernels and CPU baselines..."
+for workload in "${WORKLOADS[@]}"; do
+    echo "    [${workload}] PIM kernel..."
+    make -C "${SCRIPT_DIR}/${workload}/PIM" perf $JOBS
+    echo "    [${workload}] CPU baseline..."
+    make -C "${SCRIPT_DIR}/${workload}/baselines/CPU" $JOBS
+done
+echo "    Done."
+
 echo ""
-echo "Edit your source files in-place at:"
-echo "  ${SCRIPT_DIR}/lnorm/"
-echo "  ${SCRIPT_DIR}/rmsnorm/"
+echo "Setup complete. Binaries built at:"
+for workload in "${WORKLOADS[@]}"; do
+    echo "  ${SCRIPT_DIR}/${workload}/PIM/${workload}.out"
+    echo "  ${SCRIPT_DIR}/${workload}/baselines/CPU/${workload}.out"
+done
