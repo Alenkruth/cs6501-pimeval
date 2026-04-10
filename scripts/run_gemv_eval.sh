@@ -27,7 +27,14 @@ CONFIGS=(
     PIMeval_Bank_Rank32.cfg
 )
 
-mkdir -p "${OUTPUT_DIR}"
+LOG_DIR="${OUTPUT_DIR}/logs"
+mkdir -p "${OUTPUT_DIR}" "${LOG_DIR}"
+
+# Combined log file with timestamp
+RUN_LOG="${LOG_DIR}/run_$(date +%Y%m%d_%H%M%S).log"
+echo "GEMV Evaluation — $(date)" | tee "${RUN_LOG}"
+echo "Matrix: ${MATRIX_ROWS}x${MATRIX_COLS}" | tee -a "${RUN_LOG}"
+echo "========================================" | tee -a "${RUN_LOG}"
 
 # ---------- Helper: parse PIM output ----------
 # Extracts data-copy runtime/energy and PIM-command runtime/energy from stdout.
@@ -61,15 +68,18 @@ parse_pim_output() {
 }
 
 # ---------- Run CPU baseline ----------
-echo "==> Running CPU baseline (${MATRIX_ROWS}x${MATRIX_COLS})..."
+echo "==> Running CPU baseline (${MATRIX_ROWS}x${MATRIX_COLS})..." | tee -a "${RUN_LOG}"
 cpu_output=$(cd "${GEMV_CPU_DIR}" && ./gemv.out -r ${MATRIX_ROWS} -c ${MATRIX_COLS} 2>&1) || true
-echo "$cpu_output"
-echo ""
+echo "$cpu_output" | tee -a "${RUN_LOG}"
+echo "" | tee -a "${RUN_LOG}"
+
+# Save individual log
+echo "$cpu_output" > "${LOG_DIR}/cpu_baseline.log"
 
 cpu_time=$(echo "$cpu_output" | grep -i "Duration" | grep -oP '[\d.]+(?=\s*ms)')
 cpu_time=${cpu_time:-N/A}
-echo "    CPU Duration: ${cpu_time} ms"
-echo ""
+echo "    CPU Duration: ${cpu_time} ms" | tee -a "${RUN_LOG}"
+echo "" | tee -a "${RUN_LOG}"
 
 # ---------- Run PIM configs ----------
 declare -a pim_ranks
@@ -84,14 +94,17 @@ for cfg in "${CONFIGS[@]}"; do
     rank=$(echo "$cfg" | grep -oP 'Rank\K[0-9]+')
     config_path="${CONFIG_DIR}/${cfg}"
 
-    echo "==> Running PIM with ${cfg} (Rank ${rank})..."
+    echo "==> Running PIM with ${cfg} (Rank ${rank})..." | tee -a "${RUN_LOG}"
 
     pim_output=$(cd "${GEMV_PIM_DIR}" && ./gemv.out \
         -r ${MATRIX_ROWS} -d ${MATRIX_COLS} \
         -c "${config_path}" \
         -v t 2>&1) || true
-    echo "$pim_output"
-    echo ""
+    echo "$pim_output" | tee -a "${RUN_LOG}"
+    echo "" | tee -a "${RUN_LOG}"
+
+    # Save individual log
+    echo "$pim_output" > "${LOG_DIR}/pim_rank${rank}.log"
 
     read -r dc_rt dc_en pim_rt pim_en <<< "$(parse_pim_output "$pim_output")"
 
@@ -106,8 +119,8 @@ for cfg in "${CONFIGS[@]}"; do
     pim_total_times+=("${total_time}")
     pim_total_energies+=("${total_energy}")
 
-    echo "    Rank ${rank}: Total Time = ${total_time} ms, Total Energy = ${total_energy} mJ"
-    echo ""
+    echo "    Rank ${rank}: Total Time = ${total_time} ms, Total Energy = ${total_energy} mJ" | tee -a "${RUN_LOG}"
+    echo "" | tee -a "${RUN_LOG}"
 done
 
 # ---------- Generate LaTeX table: Time comparison ----------
@@ -168,8 +181,9 @@ cat >> "${OUTPUT_DIR}/gemv_energy_table.tex" << 'TEXFOOTER'
 \end{table}
 TEXFOOTER
 
-echo "============================================"
-echo "Done. LaTeX tables written to:"
-echo "  ${OUTPUT_DIR}/gemv_time_table.tex"
-echo "  ${OUTPUT_DIR}/gemv_energy_table.tex"
-echo "============================================"
+echo "============================================" | tee -a "${RUN_LOG}"
+echo "Done. Output written to:" | tee -a "${RUN_LOG}"
+echo "  Tables: ${OUTPUT_DIR}/gemv_time_table.tex" | tee -a "${RUN_LOG}"
+echo "          ${OUTPUT_DIR}/gemv_energy_table.tex" | tee -a "${RUN_LOG}"
+echo "  Logs:   ${LOG_DIR}/" | tee -a "${RUN_LOG}"
+echo "============================================" | tee -a "${RUN_LOG}"
