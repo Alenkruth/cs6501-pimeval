@@ -96,42 +96,109 @@ uint32_t newton_sqrt(uint32_t x) {
 
 void lnorm(uint64_t vectorLength, std::vector<int> &srcVector, std::vector<int> &dst)
 {
-  //Please attempt rmsnorm implementation before attempting this
- 
-  
-  //TODO: Allocate source vector
-  //TODO: Allocate destination vector (use pimAllocAssociated: libpimeval/src/libpimeval.h)
-  //TODO: Allocate temporary vector (if needed) (use pimAllocAssociated)
- 
+  // Allocate source vector
+  PimObjId srcObj1 = pimAlloc(PIM_ALLOC_AUTO, vectorLength, PIM_INT32);
+  if (srcObj1 == -1)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
+
+  // Allocate destination vector
+  PimObjId dstObj = pimAllocAssociated(srcObj1, PIM_INT32);
+  if (dstObj == -1)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
+
+  // Allocate temporary vector (stores x - mean)
+  PimObjId tmpObj = pimAllocAssociated(srcObj1, PIM_INT32);
+  if (tmpObj == -1)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
   PimStatus status;
 
-  //TODO: Copy source vector to PIM
+  // Copy source vector to PIM
+  status = pimCopyHostToDevice((void *)srcVector.data(), srcObj1);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
   int32_t sum = 0;
   int32_t mean = 0;
-  //TODO: Compute mean of the source vector (if there is any part to be run on CPU, time it)
-  
-  //TODO: Subtract mean from the source vector and store it a temporary vector
-  
-  //TODO: Compute square of the temporary vector and store it in the destination vector
+  // Compute mean: reduce sum on PIM, divide on CPU
+  status = pimRedSum(srcObj1, &sum);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
+  auto start_cpu = std::chrono::high_resolution_clock::now();
+  mean = sum / (int32_t)vectorLength;
+  auto stop_cpu = std::chrono::high_resolution_clock::now();
+  hostElapsedTime += (stop_cpu - start_cpu);
 
+  // Subtract mean from source vector: tmpObj[i] = srcObj1[i] - mean
+  status = pimSubScalar(srcObj1, tmpObj, (uint64_t)mean);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
+
+  // Square the (x - mean) vector: dstObj[i] = tmpObj[i] * tmpObj[i]
+  status = pimMul(tmpObj, tmpObj, dstObj);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
   int32_t sum2 = 0;
   int32_t variance = 0;
   int32_t sqrt_var = 0;
-  //TODO: Find variance of (X - mean)**2, time the CPU part
-  
+  // Compute variance: reduce sum on PIM, divide and sqrt on CPU
+  status = pimRedSum(dstObj, &sum2);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
+  auto start_cpu2 = std::chrono::high_resolution_clock::now();
+  variance = sum2 / (int32_t)vectorLength;
+  sqrt_var = newton_sqrt(variance + 1);
+  if (sqrt_var == 0) sqrt_var = 1;
+  auto stop_cpu2 = std::chrono::high_resolution_clock::now();
+  hostElapsedTime += (stop_cpu2 - start_cpu2);
 
-  //TODO: Scale the temporary vector with the square of the variance
-  
-
+  // Divide (x - mean) by sqrt(variance): dstObj[i] = tmpObj[i] / sqrt_var
+  status = pimDivScalar(tmpObj, dstObj, (uint64_t)sqrt_var);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
   dst.resize(vectorLength);
-  
-  //TODO: Copy the destination vector to host
 
-  //TODO: Free the PIM objects
+  // Copy the destination vector to host
+  status = pimCopyDeviceToHost(dstObj, (void *)dst.data());
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
+
+  // Free the PIM objects
+  pimFree(srcObj1);
+  pimFree(dstObj);
+  pimFree(tmpObj);
  
 }
 

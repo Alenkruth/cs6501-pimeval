@@ -121,18 +121,37 @@ void rmsnorm(uint64_t vectorLength, std::vector<int> &srcVector, std::vector<int
     return;
   }
 
-  // TODO: Square the element of the vector
+  // Square the elements of the vector: dstObj[i] = srcObj1[i] * srcObj1[i]
+  status = pimMul(srcObj1, srcObj1, dstObj);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
   uint32_t sum = 0;
-  // TODO: Sum of the squared elements
-  
-  auto start_cpu = std::chrono::high_resolution_clock::now();
-  // TODO: Calculate scalar operations related mean and rms on CPU and time it
+  // Sum of the squared elements: sum = sum(dstObj[i])
+  status = pimRedSum(dstObj, &sum);
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
+  auto start_cpu = std::chrono::high_resolution_clock::now();
+  // Calculate mean of squares and RMS on CPU
+  uint32_t mean_sq = sum / vectorLength;
+  uint32_t rms = newton_sqrt(mean_sq + 1);
   auto stop_cpu = std::chrono::high_resolution_clock::now();
   hostElapsedTime += (stop_cpu - start_cpu);
 
-  // TODO: Divide the source vector by the RMS value
+  // Divide the source vector by the RMS value: dstObj[i] = srcObj1[i] / (rms + 1)
+  status = pimDivScalar(srcObj1, dstObj, (uint64_t)(rms + 1));
+  if (status != PIM_OK)
+  {
+    std::cout << "Abort" << std::endl;
+    return;
+  }
 
 
   dst.resize(vectorLength);
