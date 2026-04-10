@@ -1,0 +1,14 @@
+# Generated output
+output/**/*.tex
+output/**/*.pdf
+output/**/*.png
+output/**/*.svg
+output/**/*.eps
+
+# Build artifacts
+*.out
+*.o
+*.dSYM/
+
+#ignore claude
+.claude/

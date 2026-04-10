@@ -63,3 +63,11 @@ cd rmsnorm/baselines/CPU && make
 ```
 
 Edit source files in `lnorm/` and `rmsnorm/` at the repo root. The symlinks let PIMbench's build system find them without copying files around.
+
+## Troubleshooting
+
+If you get a **"stack smashing detected"** error at runtime, rebuild with address sanitizer flags to diagnose:
+
+```bash
+make clean && make debug CXXFLAGS="-fsanitize=address -g -fno-omit-frame-pointer"
+```

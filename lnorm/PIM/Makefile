@@ -12,6 +12,8 @@ ifeq ($(USE_OPENMP),1)
 	CXXFLAGS += -fopenmp
 endif
 
+CXXFLAGS += -fsanitize=address -g -fno-omit-frame-pointer
+
 EXEC := lnorm.out
 SRC := lnorm.cpp
 
