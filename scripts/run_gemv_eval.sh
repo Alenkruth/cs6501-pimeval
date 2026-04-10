@@ -181,9 +181,18 @@ cat >> "${OUTPUT_DIR}/gemv_energy_table.tex" << 'TEXFOOTER'
 \end{table}
 TEXFOOTER
 
+# ---------- Generate CSV ----------
+CSV_FILE="${OUTPUT_DIR}/gemv_results.csv"
+echo "Configuration,Data Copy (ms),PIM Compute (ms),Total PIM Time (ms),Data Copy (mJ),PIM Compute (mJ),Total PIM Energy (mJ),CPU Time (ms)" > "${CSV_FILE}"
+
+for i in "${!pim_ranks[@]}"; do
+    echo "Rank ${pim_ranks[$i]},${pim_dc_times[$i]},${pim_cmd_times[$i]},${pim_total_times[$i]},${pim_dc_energies[$i]},${pim_cmd_energies[$i]},${pim_total_energies[$i]},${cpu_time}" >> "${CSV_FILE}"
+done
+
 echo "============================================" | tee -a "${RUN_LOG}"
 echo "Done. Output written to:" | tee -a "${RUN_LOG}"
-echo "  Tables: ${OUTPUT_DIR}/gemv_time_table.tex" | tee -a "${RUN_LOG}"
-echo "          ${OUTPUT_DIR}/gemv_energy_table.tex" | tee -a "${RUN_LOG}"
-echo "  Logs:   ${LOG_DIR}/" | tee -a "${RUN_LOG}"
+echo "  LaTeX: ${OUTPUT_DIR}/gemv_time_table.tex" | tee -a "${RUN_LOG}"
+echo "         ${OUTPUT_DIR}/gemv_energy_table.tex" | tee -a "${RUN_LOG}"
+echo "  CSV:   ${CSV_FILE}" | tee -a "${RUN_LOG}"
+echo "  Logs:  ${LOG_DIR}/" | tee -a "${RUN_LOG}"
 echo "============================================" | tee -a "${RUN_LOG}"

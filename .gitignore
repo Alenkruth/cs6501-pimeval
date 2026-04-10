@@ -4,6 +4,7 @@ output/**/*.pdf
 output/**/*.png
 output/**/*.svg
 output/**/*.eps
+output/**/*.csv
 output/**/logs/
 
 # Build artifacts
